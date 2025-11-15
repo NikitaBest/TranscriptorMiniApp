@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import audioApiService from '../services/audioApi.js'
+import Button from './Button.jsx'
 import './AudioRecorder.css'
 
 function AudioRecorder() {
@@ -344,14 +345,14 @@ function AudioRecorder() {
           <div className="transcription-header">
             <h3>Транскрипция</h3>
             {transcriptionId && (
-              <button
-                className="transcription-refresh-btn"
+              <Button
+                variant="default"
+                icon="🔄"
                 onClick={refreshTranscription}
                 disabled={isLoadingTranscription}
+                className="transcription-refresh-btn"
                 title="Обновить"
-              >
-                🔄
-              </button>
+              />
             )}
           </div>
           <div className="transcription-content">
@@ -380,65 +381,63 @@ function AudioRecorder() {
 
       <div className="audio-recorder-controls">
         {!isRecording && !audioBlob && (
-          <button
-            className="audio-recorder-btn audio-recorder-btn-record"
+          <Button
+            variant="record"
+            icon="🎤"
             onClick={startRecording}
             disabled={isUploading}
           >
-            <span className="audio-recorder-icon">🎤</span>
             Начать запись
-          </button>
+          </Button>
         )}
 
         {isRecording && (
           <>
             {!isPaused ? (
-              <button
-                className="audio-recorder-btn audio-recorder-btn-pause"
+              <Button
+                variant="pause"
+                icon="⏸"
                 onClick={pauseRecording}
               >
-                <span className="audio-recorder-icon">⏸</span>
                 Пауза
-              </button>
+              </Button>
             ) : (
-              <button
-                className="audio-recorder-btn audio-recorder-btn-resume"
+              <Button
+                variant="resume"
+                icon="▶"
                 onClick={resumeRecording}
               >
-                <span className="audio-recorder-icon">▶</span>
                 Продолжить
-              </button>
+              </Button>
             )}
-            <button
-              className="audio-recorder-btn audio-recorder-btn-stop"
+            <Button
+              variant="stop"
+              icon="⏹"
               onClick={stopRecording}
             >
-              <span className="audio-recorder-icon">⏹</span>
               Остановить
-            </button>
+            </Button>
           </>
         )}
 
         {audioBlob && !isRecording && (
           <>
-            <button
-              className="audio-recorder-btn audio-recorder-btn-upload"
+            <Button
+              variant="upload"
+              icon={isUploading ? '⏳' : '📤'}
               onClick={uploadAudio}
               disabled={isUploading}
             >
-              <span className="audio-recorder-icon">
-                {isUploading ? '⏳' : '📤'}
-              </span>
               {isUploading ? 'Загрузка...' : 'Отправить'}
-            </button>
-            <button
-              className="audio-recorder-btn audio-recorder-btn-cancel"
+            </Button>
+            <Button
+              variant="cancel"
+              icon="❌"
               onClick={cancelRecording}
               disabled={isUploading}
             >
-              <span className="audio-recorder-icon">❌</span>
               Отменить
-            </button>
+            </Button>
           </>
         )}
       </div>
