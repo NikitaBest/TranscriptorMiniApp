@@ -133,6 +133,24 @@
   border: 1px solid #cfc;
 }
 
+.audio-recorder-notification {
+  width: 100%;
+  max-width: 600px;
+  padding: 1rem 1.5rem;
+  background: rgba(232, 245, 233, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 24px;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  box-shadow: 0 2px 12px rgba(76, 175, 80, 0.15);
+  font-size: 1rem;
+  font-weight: 500;
+  color: #4CAF50;
+  text-align: center;
+  margin: 0 auto 1.5rem;
+  animation: fadeInScale 0.4s ease-out;
+}
+
 .audio-recorder-timer {
   font-size: 2rem;
   font-weight: 600;
@@ -146,21 +164,175 @@
 
 .audio-recorder-preview {
   width: 100%;
-  max-width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .audio-recorder-preview audio {
+  display: none; /* Скрываем стандартный плеер */
+}
+
+.audio-player {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 24px;
+  border: 1px solid rgba(135, 206, 250, 0.2);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
   width: 100%;
-  max-width: 100%;
+  touch-action: manipulation;
+}
+
+.audio-player-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.audio-player-play-btn {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  max-width: 48px;
+  max-height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(200, 200, 200, 0.6);
+  background: rgba(255, 255, 255, 0.95);
+  color: #4CAF50;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.25);
+  padding: 0;
+  box-sizing: border-box;
+  aspect-ratio: 1 / 1;
+  line-height: 1;
+  text-align: center;
+}
+
+/* Стили для состояния Play (зеленая подсветка) */
+.audio-player-play-btn-active {
+  border: 1px solid rgba(200, 200, 200, 0.6);
+  background: rgba(232, 245, 233, 0.9);
+  color: #4CAF50;
+  box-shadow: 0 2px 12px rgba(76, 175, 80, 0.3);
+}
+
+.audio-player-play-btn-active:hover {
+  background: rgba(200, 230, 201, 0.95);
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
+}
+
+.audio-player-play-btn-active:active {
+  transform: scale(0.95);
+  background: rgba(165, 214, 167, 0.95);
+}
+
+/* Стили для состояния Pause (оранжевая подсветка) */
+.audio-player-pause-btn {
+  border: 1px solid rgba(200, 200, 200, 0.6);
+  background: rgba(255, 243, 224, 0.9);
+  color: #FF9800;
+  box-shadow: 0 2px 12px rgba(255, 170, 0, 0.3);
+}
+
+.audio-player-pause-btn:hover {
+  background: rgba(255, 224, 178, 0.95);
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(255, 170, 0, 0.4);
+}
+
+.audio-player-pause-btn:active {
+  transform: scale(0.95);
+  background: rgba(255, 183, 77, 0.95);
+}
+
+.audio-player-time {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #213547;
+  font-variant-numeric: tabular-nums;
+  min-width: 90px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.audio-player-progress-container {
+  width: 100%;
+  height: 6px;
+  min-height: 44px; /* Увеличиваем область касания для мобильных */
+  background: transparent;
+  border-radius: 3px;
+  position: relative;
+  overflow: visible;
+  cursor: pointer;
+  touch-action: manipulation;
+  display: flex;
+  align-items: center;
+  padding: 19px 0; /* Отступы для увеличения области касания */
+  margin-top: 0.25rem;
+}
+
+.audio-player-progress-container::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  height: 6px;
+  background: rgba(200, 200, 200, 0.3);
+  border-radius: 3px;
+  z-index: 0;
+}
+
+.audio-player-progress-bar {
+  height: 6px;
+  background: linear-gradient(90deg, rgba(135, 206, 250, 0.9) 0%, rgba(25, 118, 210, 0.9) 50%, rgba(135, 206, 250, 0.9) 100%);
+  border-radius: 3px;
+  transition: width 0.1s linear;
+  position: relative;
+  width: 0%;
+  z-index: 1;
+}
+
+.audio-player-progress-bar::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #1976D2 0%, #42A5F5 100%);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.4);
+  border: 3px solid #ffffff;
 }
 
 .audio-recorder-controls {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 1rem;
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
   width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 .audio-recorder-controls-group {
@@ -188,55 +360,25 @@
 /* Транскрипция */
 .audio-recorder-transcription {
   width: 100%;
-  padding: 1rem;
-  background-color: #f9f9f9;
-  border-radius: 12px;
-  border: 1px solid #e0e0e0;
-  margin-top: 1rem;
-}
-
-.transcription-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.transcription-header h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #213547;
-  margin: 0;
-}
-
-.transcription-refresh-btn {
-  min-width: auto;
-  min-height: auto;
-  padding: 0.5rem;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  max-width: 600px;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 24px;
+  border: 1px solid rgba(135, 206, 250, 0.2);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  margin: 1.5rem auto 0;
 }
 
 .transcription-content {
-  font-size: 0.9375rem;
+  font-size: 1rem;
   line-height: 1.6;
   color: #213547;
   white-space: pre-wrap;
   word-wrap: break-word;
-  max-height: 300px;
-  overflow-y: auto;
-  padding: 0.75rem;
-  background-color: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-}
-
-.transcription-progress {
-  margin-top: 0.75rem;
-  font-size: 0.875rem;
-  color: #666;
-  text-align: center;
+  margin: 0;
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 }
 
 /* Индикатор загрузки */
@@ -276,11 +418,53 @@
 
   .audio-recorder-controls {
     flex-direction: column;
+    padding: 0 0.5rem;
   }
 
   .audio-recorder-btn {
     width: 100%;
     min-width: 100%;
+  }
+
+  .audio-player {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .audio-player-main {
+    gap: 0.875rem;
+  }
+
+  .audio-player-play-btn {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    min-height: 52px;
+    max-width: 52px;
+    max-height: 52px;
+    font-size: 1.625rem;
+  }
+
+  .audio-player-time {
+    font-size: 0.875rem;
+    min-width: 85px;
+  }
+
+  .audio-player-progress-container {
+    min-height: 50px;
+    padding: 22px 0;
+    margin-top: 0.5rem;
+  }
+
+  .audio-player-progress-bar {
+    height: 7px;
+  }
+
+  .audio-player-progress-bar::after {
+    width: 24px;
+    height: 24px;
+    right: -10px;
+    border: 4px solid #ffffff;
   }
 
   .sound-waves-container {

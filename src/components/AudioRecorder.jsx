@@ -20,6 +20,10 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
   const [transcription, setTranscription] = useState(null)
   const [isLoadingTranscription, setIsLoadingTranscription] = useState(false)
   const [transcriptionStatus, setTranscriptionStatus] = useState(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
 
   const mediaRecorderRef = useRef(null)
   const audioChunksRef = useRef([])
@@ -31,6 +35,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
   const animationFrameRef = useRef(null)
   const isRecordingRef = useRef(false) // Ref для проверки состояния записи
   const isPausedRef = useRef(false) // Ref для проверки состояния паузы
+  const audioPlayerRef = useRef(null) // Ref для audio элемента
 
   // Форматирование времени в MM:SS
   const formatTime = (seconds) => {
@@ -136,6 +141,10 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
         }
         const url = URL.createObjectURL(audioBlob)
         setAudioUrl(url)
+        // Сбрасываем состояние плеера
+        setIsPlaying(false)
+        setCurrentTime(0)
+        setDuration(0)
         
         // Останавливаем анализ
         if (animationFrameRef.current) {
@@ -265,6 +274,41 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
     setUploadStatus(null)
   }
 
+  // Сохранение транскрипции
+  const saveTranscription = () => {
+    const transcriptionText = transcription?.transcriptionResult || transcription?.text || transcription?.transcription || transcription?.result || transcription?.transcribedText || ''
+    
+    if (transcriptionText) {
+      // Создаем файл с транскрипцией
+      const blob = new Blob([transcriptionText], { type: 'text/plain;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `transcription_${new Date().getTime()}.txt`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      
+      // Можно также сохранить в localStorage для истории
+      const savedTranscriptions = JSON.parse(localStorage.getItem('savedTranscriptions') || '[]')
+      savedTranscriptions.push({
+        text: transcriptionText,
+        timestamp: new Date().toISOString(),
+        duration: recordingTime
+      })
+      localStorage.setItem('savedTranscriptions', JSON.stringify(savedTranscriptions))
+    }
+  }
+
+  // Новая запись
+  const startNewRecording = () => {
+    cancelRecording()
+    setCurrentTime(0)
+    setDuration(0)
+    setIsPlaying(false)
+  }
+
   // Отправка аудио на бекенд
   const uploadAudio = async () => {
     if (!audioBlob) return
@@ -272,7 +316,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
     try {
       setIsUploading(true)
       setError(null)
-      setUploadStatus('Загрузка...')
+      setUploadStatus(null)
       setTranscription(null)
       setTranscriptionId(null)
 
@@ -307,12 +351,8 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
         const uploadStatus = uploadData?.status
         console.log('Статус загрузки:', uploadStatus)
         
-        if (uploadStatus === 'completed') {
-          // Файл загружен, но транскрипция может еще не начаться
-          setUploadStatus('Файл загружен, ожидание начала обработки транскрипции...')
-        } else {
-          setUploadStatus('Файл загружен, ожидание начала обработки...')
-        }
+        // Не показываем промежуточные статусы
+        setUploadStatus(null)
         
         setIsUploading(false) // Загрузка завершена, начинаем проверку статуса
         // Даем время бекенду создать задачу транскрипции перед первой проверкой
@@ -321,7 +361,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
           checkTranscriptionStatus(id)
         }, 2000) // Ждем 2 секунды перед первой проверкой
       } else {
-        setUploadStatus('Успешно загружено!')
+        setUploadStatus(null)
         console.error('ID записи не найден в ответе:', response)
         setIsUploading(false)
       }
@@ -383,20 +423,20 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
       
       // Если транскрипция еще обрабатывается
       if (progressPercent !== undefined && progressPercent < 100) {
-        setUploadStatus(`Обработка транскрипции... (${progressPercent}%)`)
+        setUploadStatus(null)
         // Продолжаем проверку
         statusCheckTimerRef.current = setTimeout(() => {
           checkTranscriptionStatus(id)
         }, 3000)
       } else if (transcriptionStatus === 1 || transcriptionStatus === 0) {
         // Статус: в обработке или ожидании
-        setUploadStatus('Обработка транскрипции...')
+        setUploadStatus(null)
         statusCheckTimerRef.current = setTimeout(() => {
           checkTranscriptionStatus(id)
         }, 3000)
       } else {
         // Неизвестный статус, продолжаем проверять
-        setUploadStatus('Ожидание обработки...')
+        setUploadStatus(null)
         statusCheckTimerRef.current = setTimeout(() => {
           checkTranscriptionStatus(id)
         }, 3000)
@@ -410,14 +450,14 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
       // Если ошибка 404 или 400 - это может означать, что транскрипция еще не создана
       // или еще обрабатывается. Продолжаем проверять без показа ошибки
       if (errorStatus === 404 || errorStatus === 400) {
-        setUploadStatus('Ожидание обработки транскрипции...')
+        setUploadStatus(null)
         setError(null)
         statusCheckTimerRef.current = setTimeout(() => {
           checkTranscriptionStatus(id)
         }, 3000)
       } else {
         // Для других ошибок тоже пробуем еще раз, но с большей задержкой
-        setUploadStatus('Повторная попытка получения статуса...')
+        setUploadStatus(null)
         setError(null)
         statusCheckTimerRef.current = setTimeout(() => {
           checkTranscriptionStatus(id)
@@ -457,8 +497,8 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
         </div>
       )}
 
-      {uploadStatus && (
-        <div className="audio-recorder-status">
+      {uploadStatus === 'Транскрипция готова!' && (
+        <div className="audio-recorder-notification">
           {uploadStatus}
         </div>
       )}
@@ -502,34 +542,125 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
 
       {audioUrl && !isRecording && (
         <div className="audio-recorder-preview">
-          <audio src={audioUrl} controls />
+          <audio 
+            ref={audioPlayerRef}
+            src={audioUrl} 
+            onTimeUpdate={() => {
+              if (audioPlayerRef.current) {
+                setCurrentTime(audioPlayerRef.current.currentTime)
+              }
+            }}
+            onLoadedMetadata={() => {
+              if (audioPlayerRef.current) {
+                setDuration(audioPlayerRef.current.duration)
+              }
+            }}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            onEnded={() => {
+              setIsPlaying(false)
+              setCurrentTime(0)
+            }}
+          />
+          <div className="audio-player">
+            <div className="audio-player-main">
+              <button 
+                className={`audio-player-play-btn ${isPlaying ? 'audio-player-pause-btn' : 'audio-player-play-btn-active'}`}
+                onClick={() => {
+                  if (audioPlayerRef.current) {
+                    if (isPlaying) {
+                      audioPlayerRef.current.pause()
+                      setIsPlaying(false)
+                    } else {
+                      audioPlayerRef.current.play()
+                      setIsPlaying(true)
+                    }
+                  }
+                }}
+              >
+                {isPlaying ? '⏸' : '▶'}
+              </button>
+              <div className="audio-player-time">
+                {formatTime(Math.floor(currentTime))} / {formatTime(Math.floor(duration))}
+              </div>
+            </div>
+            <div 
+              className="audio-player-progress-container"
+              onClick={(e) => {
+                if (audioPlayerRef.current && duration && !isDragging) {
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+                  const newTime = percent * duration
+                  audioPlayerRef.current.currentTime = newTime
+                  setCurrentTime(newTime)
+                }
+              }}
+              onMouseDown={(e) => {
+                if (audioPlayerRef.current && duration) {
+                  setIsDragging(true)
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+                  const newTime = percent * duration
+                  audioPlayerRef.current.currentTime = newTime
+                  setCurrentTime(newTime)
+                }
+              }}
+              onMouseMove={(e) => {
+                if (isDragging && audioPlayerRef.current && duration) {
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+                  const newTime = percent * duration
+                  audioPlayerRef.current.currentTime = newTime
+                  setCurrentTime(newTime)
+                }
+              }}
+              onMouseUp={() => {
+                setIsDragging(false)
+              }}
+              onMouseLeave={() => {
+                setIsDragging(false)
+              }}
+              onTouchStart={(e) => {
+                if (audioPlayerRef.current && duration) {
+                  setIsDragging(true)
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  const touch = e.touches[0]
+                  const percent = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width))
+                  const newTime = percent * duration
+                  audioPlayerRef.current.currentTime = newTime
+                  setCurrentTime(newTime)
+                }
+              }}
+              onTouchMove={(e) => {
+                if (isDragging && audioPlayerRef.current && duration) {
+                  e.preventDefault()
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  const touch = e.touches[0]
+                  const percent = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width))
+                  const newTime = percent * duration
+                  audioPlayerRef.current.currentTime = newTime
+                  setCurrentTime(newTime)
+                }
+              }}
+              onTouchEnd={() => {
+                setIsDragging(false)
+              }}
+            >
+              <div 
+                className="audio-player-progress-bar"
+                style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
         </div>
       )}
 
       {/* Отображение транскрипции */}
       {transcription && (
         <div className="audio-recorder-transcription">
-          <div className="transcription-header">
-            <h3>Транскрипция</h3>
-            {transcriptionId && (
-              <Button
-                variant="default"
-                icon="🔄"
-                onClick={refreshTranscription}
-                disabled={isLoadingTranscription}
-                className="transcription-refresh-btn"
-                title="Обновить"
-              />
-            )}
-          </div>
           <div className="transcription-content">
             {transcription?.transcriptionResult || transcription?.text || transcription?.transcription || transcription?.result || transcription?.transcribedText || 'Текст транскрипции не найден'}
           </div>
-          {transcription.progressPercent !== undefined && (
-            <div className="transcription-progress">
-              Прогресс: {transcription.progressPercent}%
-            </div>
-          )}
         </div>
       )}
 
@@ -538,11 +669,6 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
         <div className="audio-recorder-loading">
           <div className="loading-spinner"></div>
           <p>Получение транскрипции...</p>
-          {process.env.NODE_ENV === 'development' && (
-            <p style={{ fontSize: '0.75rem', color: '#999', marginTop: '0.5rem' }}>
-              ID: {transcriptionId}
-            </p>
-          )}
         </div>
       )}
 
@@ -574,7 +700,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
           </div>
         )}
 
-        {audioBlob && !isRecording && (
+        {audioBlob && !isRecording && !transcription && (
           <>
             <Button
               variant="upload"
@@ -589,6 +715,23 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
               disabled={isUploading}
             >
               Отменить
+            </Button>
+          </>
+        )}
+
+        {transcription && (
+          <>
+            <Button
+              variant="cancel"
+              onClick={startNewRecording}
+            >
+              Новая запись
+            </Button>
+            <Button
+              variant="upload"
+              onClick={saveTranscription}
+            >
+              Сохранить
             </Button>
           </>
         )}
