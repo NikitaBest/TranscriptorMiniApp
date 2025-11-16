@@ -4,9 +4,10 @@ import Button from './Button.jsx'
 import MicrophoneIcon from './MicrophoneIcon.jsx'
 import PauseIcon from './PauseIcon.jsx'
 import StopIcon from './StopIcon.jsx'
+import AudioWaves from './AudioWaves.jsx'
 import './AudioRecorder.css'
 
-function AudioRecorder() {
+function AudioRecorder({ onAudioData, onRecordingStateChange, audioData }) {
   const [isRecording, setIsRecording] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [recordingTime, setRecordingTime] = useState(0)
@@ -24,6 +25,11 @@ function AudioRecorder() {
   const audioChunksRef = useRef([])
   const timerRef = useRef(null)
   const statusCheckTimerRef = useRef(null) // Таймер для проверки статуса
+  const audioContextRef = useRef(null)
+  const analyserRef = useRef(null)
+  const dataArrayRef = useRef(null)
+  const animationFrameRef = useRef(null)
+  const isRecordingRef = useRef(false) // Ref для проверки состояния записи
 
   // Форматирование времени в MM:SS
   const formatTime = (seconds) => {
@@ -32,11 +38,81 @@ function AudioRecorder() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
+  // Анализ аудио для эквалайзера
+  const analyzeAudio = () => {
+    if (!analyserRef.current || isPaused) {
+      if (onAudioData) {
+        onAudioData(null)
+      }
+      return
+    }
+
+    // Проверяем состояние записи через ref, чтобы избежать проблем с замыканиями
+    if (!isRecordingRef.current) {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+      return
+    }
+
+    analyserRef.current.getByteFrequencyData(dataArrayRef.current)
+    
+    // Преобразуем данные в массив для 20 полос эквалайзера
+    const barCount = 20
+    const dataLength = dataArrayRef.current.length
+    const step = Math.floor(dataLength / barCount)
+    const audioLevels = []
+    
+    // Берем средние значения для более плавной визуализации
+    for (let i = 0; i < barCount; i++) {
+      const startIndex = i * step
+      const endIndex = Math.min(startIndex + step, dataLength)
+      let sum = 0
+      let count = 0
+      
+      for (let j = startIndex; j < endIndex; j++) {
+        sum += dataArrayRef.current[j] || 0
+        count++
+      }
+      
+      const avgValue = count > 0 ? sum / count : 0
+      // Используем максимальное значение в диапазоне для более яркой реакции
+      let maxValue = 0
+      for (let j = startIndex; j < endIndex; j++) {
+        maxValue = Math.max(maxValue, dataArrayRef.current[j] || 0)
+      }
+      // Нормализуем и значительно увеличиваем чувствительность
+      // Используем более агрессивное усиление для яркой реакции
+      const normalized = Math.min(1.2, (maxValue / 255) * 3.5) // Множитель 3.5, максимум 1.2 для переполнения
+      audioLevels.push(Math.max(0.15, normalized)) // Минимум 15% для видимости
+    }
+    
+    if (onAudioData) {
+      onAudioData(audioLevels)
+    }
+    animationFrameRef.current = requestAnimationFrame(analyzeAudio)
+  }
+
   // Запрос доступа к микрофону и начало записи
   const startRecording = async () => {
     try {
       setError(null)
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      
+      // Создаем AudioContext для анализа звука
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+      const analyser = audioContext.createAnalyser()
+      const source = audioContext.createMediaStreamSource(stream)
+      
+      analyser.fftSize = 512 // Увеличиваем для лучшего разрешения
+      analyser.smoothingTimeConstant = 0.2 // Уменьшаем для более быстрой реакции
+      analyser.minDecibels = -100 // Более чувствительный диапазон
+      analyser.maxDecibels = -5 // Более высокий максимум
+      source.connect(analyser)
+      
+      audioContextRef.current = audioContext
+      analyserRef.current = analyser
+      dataArrayRef.current = new Uint8Array(analyser.frequencyBinCount)
       
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: 'audio/webm;codecs=opus'
@@ -57,18 +133,41 @@ function AudioRecorder() {
         const url = URL.createObjectURL(audioBlob)
         setAudioUrl(url)
         
+        // Останавливаем анализ
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current)
+        }
+        if (onAudioData) {
+          onAudioData(null)
+        }
+        
+        // Закрываем AudioContext
+        if (audioContextRef.current) {
+          audioContextRef.current.close()
+          audioContextRef.current = null
+        }
+        
         // Останавливаем все треки потока
         stream.getTracks().forEach(track => track.stop())
       }
 
       mediaRecorder.start()
+      isRecordingRef.current = true
       setIsRecording(true)
+      if (onRecordingStateChange) {
+        onRecordingStateChange(true)
+      }
       setRecordingTime(0)
 
       // Запускаем таймер
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1)
       }, 1000)
+
+      // Запускаем анализ аудио с небольшой задержкой, чтобы состояние успело обновиться
+      setTimeout(() => {
+        analyzeAudio()
+      }, 50)
 
     } catch (err) {
       console.error('Ошибка при записи:', err)
@@ -84,6 +183,13 @@ function AudioRecorder() {
       if (timerRef.current) {
         clearInterval(timerRef.current)
       }
+      // Останавливаем анализ
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+      if (onAudioData) {
+        onAudioData(null)
+      }
     }
   }
 
@@ -95,6 +201,8 @@ function AudioRecorder() {
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1)
       }, 1000)
+      // Возобновляем анализ
+      analyzeAudio()
     }
   }
 
@@ -104,10 +212,21 @@ function AudioRecorder() {
       if (mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop()
       }
+      isRecordingRef.current = false
       setIsRecording(false)
       setIsPaused(false)
+      if (onRecordingStateChange) {
+        onRecordingStateChange(false)
+      }
       if (timerRef.current) {
         clearInterval(timerRef.current)
+      }
+      // Останавливаем анализ
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+      if (onAudioData) {
+        onAudioData(null)
       }
     }
   }
@@ -347,14 +466,22 @@ function AudioRecorder() {
               />
             </div>
             <p className="audio-recorder-hint">Запись голосового сообщения</p>
+            <div className="audio-recorder-equalizer-container">
+              <AudioWaves audioData={null} isRecording={false} />
+            </div>
           </div>
         </div>
       )}
 
       {isRecording && (
-        <div className="audio-recorder-timer">
-          {formatTime(recordingTime)}
-        </div>
+        <>
+          <div className="audio-recorder-timer">
+            {formatTime(recordingTime)}
+          </div>
+          <div className="audio-recorder-equalizer-container">
+            <AudioWaves audioData={audioData} isRecording={isRecording} />
+          </div>
+        </>
       )}
 
       {audioUrl && !isRecording && (

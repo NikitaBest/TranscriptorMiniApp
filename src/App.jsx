@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import { testUserData, isLocalDevelopment } from './config/testData.js'
 import AudioRecorder from './components/AudioRecorder.jsx'
-import AudioWaves from './components/AudioWaves.jsx'
 
 function App() {
   const [userName, setUserName] = useState(null)
   const [userPhoto, setUserPhoto] = useState(null)
+  const [audioData, setAudioData] = useState(null)
+  const [isRecording, setIsRecording] = useState(false)
 
   useEffect(() => {
     // Проверяем, локальная ли это разработка
@@ -78,9 +79,12 @@ function App() {
             <p>Привет, {userName}</p>
           </div>
         )}
-        <AudioRecorder />
+        <AudioRecorder 
+          onAudioData={setAudioData} 
+          onRecordingStateChange={setIsRecording}
+          audioData={audioData}
+        />
       </div>
-      <AudioWaves />
     </div>
   )
 }
