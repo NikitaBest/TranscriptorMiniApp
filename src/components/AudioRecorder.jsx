@@ -359,10 +359,11 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
         // Не показываем промежуточные статусы
         setUploadStatus(null)
         
-        setIsUploading(false) // Загрузка завершена, начинаем проверку статуса
         // Даем время бекенду создать задачу транскрипции перед первой проверкой
         statusCheckTimerRef.current = setTimeout(() => {
           console.log('Начинаем проверку статуса транскрипции для ID:', id)
+          setIsLoadingTranscription(true) // Начинаем проверку статуса
+          setIsUploading(false) // Загрузка завершена
           checkTranscriptionStatus(id)
         }, 2000) // Ждем 2 секунды перед первой проверкой
       } else {
@@ -728,14 +729,14 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
           </div>
         )}
 
-        {audioBlob && !isRecording && !transcription && (
+        {audioBlob && !isRecording && !transcription && !isUploading && !isLoadingTranscription && (
           <>
             <Button
               variant="upload"
               onClick={uploadAudio}
               disabled={isUploading}
             >
-              {isUploading ? 'Загрузка...' : 'Отправить'}
+              Отправить
             </Button>
             <Button
               variant="cancel"
