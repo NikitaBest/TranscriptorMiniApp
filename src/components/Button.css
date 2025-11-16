@@ -97,33 +97,34 @@
   box-shadow: 0 4px 12px rgba(102, 102, 102, 0.3);
 }
 
-/* Вариант: Загрузить (синий) */
+/* Вариант: Загрузить (светло-синий) */
 .btn-upload {
-  background-color: rgba(100, 108, 255, 0.85);
-  color: #ffffff;
+  background-color: #E3F2FD;
+  color: #1976D2;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(25, 118, 210, 0.3);
 }
 
 .btn-upload:hover:not(:disabled) {
-  background-color: rgba(83, 91, 242, 0.9);
+  background-color: #BBDEFB;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(100, 108, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
 }
 
-/* Вариант: Отменить (светлый) */
+/* Вариант: Отменить (светло-красный) */
 .btn-cancel {
-  background-color: rgba(249, 249, 249, 0.85);
-  color: #213547;
-  border: 1px solid rgba(221, 221, 221, 0.5);
+  background-color: #FFEBEE;
+  color: #C62828;
+  border: 1px solid rgba(244, 67, 54, 0.3);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
 .btn-cancel:hover:not(:disabled) {
-  background-color: rgba(233, 233, 233, 0.9);
+  background-color: #FFCDD2;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
 }
 
 /* Вариант: По умолчанию */

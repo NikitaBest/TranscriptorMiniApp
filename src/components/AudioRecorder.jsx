@@ -578,7 +578,6 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
           <>
             <Button
               variant="upload"
-              icon={isUploading ? '⏳' : '📤'}
               onClick={uploadAudio}
               disabled={isUploading}
             >
@@ -586,7 +585,6 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
             </Button>
             <Button
               variant="cancel"
-              icon="❌"
               onClick={cancelRecording}
               disabled={isUploading}
             >
