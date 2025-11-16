@@ -434,6 +434,7 @@
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+  caret-color: #213547;
 }
 
 .transcription-content:focus {
