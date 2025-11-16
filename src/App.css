@@ -29,36 +29,3 @@
   justify-content: center;
   padding: 1.5rem;
 }
-
-.user-avatar-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 1rem;
-}
-
-.user-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #e0e0e0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.user-info {
-  text-align: center;
-  color: #213547;
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin: 0.5rem 0;
-  letter-spacing: -0.02em;
-}
-
-.user-info p {
-  margin: 0;
-  background: linear-gradient(135deg, #213547 0%, #4a5568 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import { testUserData, isLocalDevelopment } from './config/testData.js'
 import AudioRecorder from './components/AudioRecorder.jsx'
+import LoadingScreen from './components/LoadingScreen.jsx'
 
 function App() {
   const [userName, setUserName] = useState(null)
@@ -9,6 +10,7 @@ function App() {
   const [audioData, setAudioData] = useState(null)
   const [isRecording, setIsRecording] = useState(false)
   const [hasAudioBlob, setHasAudioBlob] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     // Проверяем, локальная ли это разработка
@@ -61,25 +63,24 @@ function App() {
         }
       }
     }
+
+    // Имитируем загрузку приложения (2 секунды)
+    const loadingTimer = setTimeout(() => {
+      setIsLoading(false)
+    }, 2000)
+
+    return () => {
+      clearTimeout(loadingTimer)
+    }
   }, [])
+
+  if (isLoading) {
+    return <LoadingScreen userName={userName} userPhoto={userPhoto} />
+  }
 
   return (
     <div className="app">
       <div className={`app-content ${isRecording ? 'recording-active' : ''}`}>
-        {!isRecording && !hasAudioBlob && userPhoto && (
-          <div className="user-avatar-container">
-            <img 
-              src={userPhoto} 
-              alt="User avatar" 
-              className="user-avatar"
-            />
-          </div>
-        )}
-        {!isRecording && !hasAudioBlob && userName && (
-          <div className="user-info">
-            <p>Привет, {userName}</p>
-          </div>
-        )}
         <AudioRecorder 
           onAudioData={setAudioData} 
           onRecordingStateChange={setIsRecording}

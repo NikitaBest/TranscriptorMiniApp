@@ -505,9 +505,6 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
 
       {!isRecording && !audioBlob && (
         <div className="audio-recorder-main-section">
-          <div className="audio-recorder-timer">
-            {formatTime(recordingTime)}
-          </div>
           <div className="audio-recorder-control-wrapper">
             <div className="sound-waves-container">
               <div className="sound-wave sound-wave-1"></div>
