@@ -1,6 +1,6 @@
 .audio-waves-container {
   width: 100%;
-  height: 120px;
+  height: 100px;
   position: relative;
   overflow: hidden;
   margin-top: auto;
@@ -9,7 +9,7 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding: 1rem;
+  padding: 0.5rem 1rem 0 1rem;
 }
 
 .audio-equalizer {
@@ -20,6 +20,7 @@
   width: 100%;
   max-width: 600px;
   height: 100%;
+  padding-bottom: 0;
 }
 
 .equalizer-bar {
@@ -52,8 +53,8 @@
 /* Адаптация для маленьких экранов */
 @media (max-width: 375px) {
   .audio-waves-container {
-    height: 80px;
-    padding: 0 0.5rem;
+    height: 70px;
+    padding: 0.3rem 0.5rem 0 0.5rem;
   }
   
   .equalizer-bar {
