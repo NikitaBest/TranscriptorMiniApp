@@ -762,7 +762,8 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
                 circular
               />
             </div>
-            <div className="audio-recorder-file-upload">
+            {/* Временно скрыта кнопка загрузки файла */}
+            {/* <div className="audio-recorder-file-upload">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -777,7 +778,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
                 disabled={isUploading}
                 circular
               />
-            </div>
+            </div> */}
             <div className="audio-recorder-equalizer-container">
               <AudioWaves audioData={null} isRecording={false} />
             </div>
