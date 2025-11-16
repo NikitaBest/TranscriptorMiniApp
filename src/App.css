@@ -1,11 +1,14 @@
 .app {
   width: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
   display: flex;
   flex-direction: column;
   padding-top: var(--safe-area-inset-top);
   padding-bottom: var(--safe-area-inset-bottom);
+  overflow: hidden;
 }
 
 .app-content {
@@ -16,6 +19,9 @@
   align-items: center;
   padding: 1rem;
   gap: 1rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
 }
 
 .user-avatar-container {
