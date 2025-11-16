@@ -6,6 +6,8 @@
   flex-direction: column;
   align-items: center;
   gap: 1.5rem;
+  justify-content: center;
+  flex: 1;
 }
 
 .audio-recorder-main-section {

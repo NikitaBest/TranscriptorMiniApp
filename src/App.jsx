@@ -8,6 +8,7 @@ function App() {
   const [userPhoto, setUserPhoto] = useState(null)
   const [audioData, setAudioData] = useState(null)
   const [isRecording, setIsRecording] = useState(false)
+  const [hasAudioBlob, setHasAudioBlob] = useState(false)
 
   useEffect(() => {
     // Проверяем, локальная ли это разработка
@@ -64,8 +65,8 @@ function App() {
 
   return (
     <div className="app">
-      <div className="app-content">
-        {userPhoto && (
+      <div className={`app-content ${isRecording ? 'recording-active' : ''}`}>
+        {!isRecording && !hasAudioBlob && userPhoto && (
           <div className="user-avatar-container">
             <img 
               src={userPhoto} 
@@ -74,7 +75,7 @@ function App() {
             />
           </div>
         )}
-        {userName && (
+        {!isRecording && !hasAudioBlob && userName && (
           <div className="user-info">
             <p>Привет, {userName}</p>
           </div>
@@ -82,6 +83,7 @@ function App() {
         <AudioRecorder 
           onAudioData={setAudioData} 
           onRecordingStateChange={setIsRecording}
+          onAudioBlobChange={setHasAudioBlob}
           audioData={audioData}
         />
       </div>

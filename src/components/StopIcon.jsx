@@ -1,10 +1,10 @@
 function StopIcon() {
   return (
     <svg width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle opacity="0.1" cx="50" cy="50" r="50" fill="#666666"/>
-      <circle opacity="0.36" cx="50" cy="50" r="44" fill="#666666"/>
+      <circle opacity="0.1" cx="50" cy="50" r="50" fill="#F44336"/>
+      <circle opacity="0.36" cx="50" cy="50" r="44" fill="#F44336"/>
       <g filter="url(#filter0_ddddf_stop)">
-        <circle cx="50" cy="50" r="36" fill="#E5E5E5"/>
+        <circle cx="50" cy="50" r="36" fill="#FFCDD2"/>
       </g>
       <g>
         <rect x="30" y="30" width="40" height="40" rx="4" fill="url(#paint0_linear_stop)"/>
@@ -40,8 +40,8 @@ function StopIcon() {
           <feGaussianBlur stdDeviation="0.5" result="effect5_foregroundBlur_stop"/>
         </filter>
         <linearGradient id="paint0_linear_stop" x1="50" y1="30" x2="50" y2="70" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#444444"/>
-          <stop offset="1" stopColor="#666666"/>
+          <stop stopColor="#D32F2F"/>
+          <stop offset="1" stopColor="#F44336"/>
         </linearGradient>
       </defs>
     </svg>

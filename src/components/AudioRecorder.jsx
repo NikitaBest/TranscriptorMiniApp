@@ -7,7 +7,7 @@ import StopIcon from './StopIcon.jsx'
 import AudioWaves from './AudioWaves.jsx'
 import './AudioRecorder.css'
 
-function AudioRecorder({ onAudioData, onRecordingStateChange, audioData }) {
+function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudioBlobChange }) {
   const [isRecording, setIsRecording] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [recordingTime, setRecordingTime] = useState(0)
@@ -30,6 +30,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData }) {
   const dataArrayRef = useRef(null)
   const animationFrameRef = useRef(null)
   const isRecordingRef = useRef(false) // Ref для проверки состояния записи
+  const isPausedRef = useRef(false) // Ref для проверки состояния паузы
 
   // Форматирование времени в MM:SS
   const formatTime = (seconds) => {
@@ -40,7 +41,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData }) {
 
   // Анализ аудио для эквалайзера
   const analyzeAudio = () => {
-    if (!analyserRef.current || isPaused) {
+    if (!analyserRef.current || isPausedRef.current) {
       if (onAudioData) {
         onAudioData(null)
       }
@@ -130,6 +131,9 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData }) {
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
         setAudioBlob(audioBlob)
+        if (onAudioBlobChange) {
+          onAudioBlobChange(true)
+        }
         const url = URL.createObjectURL(audioBlob)
         setAudioUrl(url)
         
@@ -179,6 +183,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData }) {
   const pauseRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.pause()
+      isPausedRef.current = true
       setIsPaused(true)
       if (timerRef.current) {
         clearInterval(timerRef.current)
@@ -186,6 +191,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData }) {
       // Останавливаем анализ
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current)
+        animationFrameRef.current = null
       }
       if (onAudioData) {
         onAudioData(null)
@@ -197,12 +203,18 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData }) {
   const resumeRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'paused') {
       mediaRecorderRef.current.resume()
+      isPausedRef.current = false
       setIsPaused(false)
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1)
       }, 1000)
-      // Возобновляем анализ
-      analyzeAudio()
+      // Возобновляем анализ с небольшой задержкой для обновления состояния
+      setTimeout(() => {
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current)
+        }
+        analyzeAudio()
+      }, 50)
     }
   }
 
@@ -213,6 +225,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData }) {
         mediaRecorderRef.current.stop()
       }
       isRecordingRef.current = false
+      isPausedRef.current = false
       setIsRecording(false)
       setIsPaused(false)
       if (onRecordingStateChange) {
@@ -236,6 +249,9 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData }) {
     stopRecording()
     stopStatusCheck() // Останавливаем проверку статуса
     setAudioBlob(null)
+    if (onAudioBlobChange) {
+      onAudioBlobChange(false)
+    }
     if (audioUrl) {
       URL.revokeObjectURL(audioUrl)
       setAudioUrl(null)

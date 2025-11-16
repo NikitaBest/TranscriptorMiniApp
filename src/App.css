@@ -24,6 +24,12 @@
   min-height: 0;
 }
 
+/* Центрирование контента во время записи */
+.app-content.recording-active {
+  justify-content: center;
+  padding: 1.5rem;
+}
+
 .user-avatar-container {
   display: flex;
   justify-content: center;
