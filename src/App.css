@@ -37,9 +37,16 @@
 .user-info {
   text-align: center;
   color: #213547;
-  font-size: 0.875rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+  letter-spacing: -0.02em;
 }
 
 .user-info p {
   margin: 0;
+  background: linear-gradient(135deg, #213547 0%, #4a5568 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

@@ -179,10 +179,10 @@
 
 /* Стили для круглой кнопки записи (микрофон) */
 .btn-circular.btn-record {
-  background: #F0E5E5;
-  box-shadow: 0 4px 20px rgba(253, 15, 0, 0.4);
+  background: #E3F2FD;
+  box-shadow: 0 4px 20px rgba(135, 206, 250, 0.4);
   position: relative;
-  border: 2px solid rgba(253, 15, 0, 0.9);
+  border: 1px solid rgba(135, 206, 250, 0.6);
   box-sizing: border-box;
 }
 
@@ -195,7 +195,7 @@
   width: 170px;
   height: 170px;
   border-radius: 50%;
-  border: 1px solid rgba(253, 15, 0, 0.4);
+  border: 1px solid rgba(135, 206, 250, 0.3);
   z-index: -1;
 }
 
@@ -208,7 +208,7 @@
   width: 180px;
   height: 180px;
   border-radius: 50%;
-  border: 1px solid rgba(253, 15, 0, 0.2);
+  border: 1px solid rgba(135, 206, 250, 0.15);
   z-index: -2;
 }
 
@@ -220,30 +220,33 @@
 @keyframes pulse-gentle {
   0%, 100% {
     transform: scale(1);
-    box-shadow: 0 4px 20px rgba(253, 15, 0, 0.4);
+    box-shadow: 0 4px 20px rgba(135, 206, 250, 0.4);
   }
   50% {
     transform: scale(1.02);
-    box-shadow: 0 6px 25px rgba(253, 15, 0, 0.5);
+    box-shadow: 0 6px 25px rgba(135, 206, 250, 0.5);
   }
 }
 
 .btn-circular.btn-record:hover:not(:disabled) {
   animation: none;
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 6px 25px rgba(253, 15, 0, 0.5);
+  box-shadow: 0 6px 25px rgba(135, 206, 250, 0.5);
 }
 
 .btn-circular.btn-record:active:not(:disabled) {
   animation: none;
-  transform: scale(0.98);
+  transform: scale(0.99);
+  opacity: 0.9;
 }
 
 /* Стили для круглой кнопки паузы */
 .btn-circular.btn-pause {
-  background: linear-gradient(135deg, rgba(255, 170, 0, 0.9), rgba(255, 153, 0, 0.9));
-  box-shadow: 0 4px 20px rgba(255, 170, 0, 0.4);
+  background: #FFF3E0;
+  box-shadow: 0 4px 20px rgba(255, 170, 0, 0.3);
   position: relative;
+  border: 1px solid rgba(255, 170, 0, 0.6);
+  box-sizing: border-box;
 }
 
 .btn-circular.btn-pause::before {
@@ -252,10 +255,10 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 66px;
-  height: 66px;
+  width: 86px;
+  height: 86px;
   border-radius: 50%;
-  background: rgba(255, 170, 0, 0.36);
+  border: 1px solid rgba(255, 170, 0, 0.3);
   z-index: -1;
 }
 
@@ -265,23 +268,30 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 75px;
-  height: 75px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
-  background: rgba(255, 170, 0, 0.1);
+  border: 1px solid rgba(255, 170, 0, 0.15);
   z-index: -2;
 }
 
 .btn-circular.btn-pause:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 6px 25px rgba(255, 170, 0, 0.5);
+  box-shadow: 0 6px 25px rgba(255, 170, 0, 0.4);
+}
+
+.btn-circular.btn-pause:active:not(:disabled) {
+  transform: scale(0.99);
+  opacity: 0.9;
 }
 
 /* Стили для круглой кнопки стоп */
 .btn-circular.btn-stop {
-  background: linear-gradient(135deg, rgba(102, 102, 102, 0.9), rgba(85, 85, 85, 0.9));
-  box-shadow: 0 4px 20px rgba(102, 102, 102, 0.4);
+  background: #F5F5F5;
+  box-shadow: 0 4px 20px rgba(102, 102, 102, 0.3);
   position: relative;
+  border: 1px solid rgba(102, 102, 102, 0.6);
+  box-sizing: border-box;
 }
 
 .btn-circular.btn-stop::before {
@@ -290,10 +300,10 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 66px;
-  height: 66px;
+  width: 86px;
+  height: 86px;
   border-radius: 50%;
-  background: rgba(102, 102, 102, 0.36);
+  border: 1px solid rgba(102, 102, 102, 0.3);
   z-index: -1;
 }
 
@@ -303,16 +313,21 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 75px;
-  height: 75px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
-  background: rgba(102, 102, 102, 0.1);
+  border: 1px solid rgba(102, 102, 102, 0.15);
   z-index: -2;
 }
 
 .btn-circular.btn-stop:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 6px 25px rgba(102, 102, 102, 0.5);
+  box-shadow: 0 6px 25px rgba(102, 102, 102, 0.4);
+}
+
+.btn-circular.btn-stop:active:not(:disabled) {
+  transform: scale(0.99);
+  opacity: 0.9;
 }
 
 /* Стили для круглой кнопки продолжить */

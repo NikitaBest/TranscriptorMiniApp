@@ -1,10 +1,10 @@
 function MicrophoneIcon() {
   return (
     <svg width="150" height="150" viewBox="0 0 150 150" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle opacity="0.1" cx="75" cy="75" r="75" fill="#FD0F00"/>
-      <circle opacity="0.36" cx="75" cy="75" r="66" fill="#FD0F00"/>
+      <circle opacity="0.1" cx="75" cy="75" r="75" fill="#87CEEB"/>
+      <circle opacity="0.36" cx="75" cy="75" r="66" fill="#87CEEB"/>
       <g filter="url(#filter0_ddddf_383_717)">
-        <circle cx="75" cy="75" r="55" fill="#F0E5E5"/>
+        <circle cx="75" cy="75" r="55" fill="#E3F2FD"/>
       </g>
       <g clipPath="url(#clip0_383_717)">
         <path d="M75.0957 82.6248C79.3467 82.6248 82.7928 79.1787 82.7928 74.9278V57.6971C82.7928 53.4461 79.3467 50 75.0957 50C70.8448 50 67.3987 53.4461 67.3987 57.6971V74.9484C67.3987 79.1787 70.8448 82.6248 75.0957 82.6248ZM69.4622 57.6971C69.4622 54.5811 72.0004 52.0636 75.0957 52.0636C78.1911 52.0636 80.7293 54.5811 80.7293 57.6971V74.9484C80.7293 78.0437 78.2117 80.5819 75.0957 80.5819C72.0004 80.5819 69.4622 78.0644 69.4622 74.9484V57.6971Z" fill="url(#paint0_linear_383_717)"/>
@@ -42,16 +42,16 @@ function MicrophoneIcon() {
           <feGaussianBlur stdDeviation="0.5" result="effect5_foregroundBlur_383_717"/>
         </filter>
         <linearGradient id="paint0_linear_383_717" x1="75.0958" y1="50" x2="75.0958" y2="82.6248" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#9D0000"/>
-          <stop offset="1" stopColor="#FF0000"/>
+          <stop stopColor="#42A5F5"/>
+          <stop offset="1" stopColor="#64B5F6"/>
         </linearGradient>
         <linearGradient id="paint1_linear_383_717" x1="75.2299" y1="69.4594" x2="75.2299" y2="91.1687" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#9D0000"/>
-          <stop offset="1" stopColor="#FF0000"/>
+          <stop stopColor="#42A5F5"/>
+          <stop offset="1" stopColor="#64B5F6"/>
         </linearGradient>
         <linearGradient id="paint2_linear_383_717" x1="75.1164" y1="91.1886" x2="75.1164" y2="100" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#9D0000"/>
-          <stop offset="1" stopColor="#FF0000"/>
+          <stop stopColor="#42A5F5"/>
+          <stop offset="1" stopColor="#64B5F6"/>
         </linearGradient>
         <clipPath id="clip0_383_717">
           <rect width="32.4598" height="50" fill="white" transform="translate(59 50)"/>
