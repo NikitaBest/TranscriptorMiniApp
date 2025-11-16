@@ -24,6 +24,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
+  const [showTranscriptionReady, setShowTranscriptionReady] = useState(false)
 
   const mediaRecorderRef = useRef(null)
   const audioChunksRef = useRef([])
@@ -414,10 +415,18 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
           text: transcriptionResult || data?.text || data?.transcription || '',
           ...data
         })
-        setUploadStatus('Транскрипция готова!')
         setIsLoadingTranscription(false)
         setIsUploading(false)
         console.log('Транскрипция получена:', transcriptionResult)
+        
+        // Показываем уведомление
+        setShowTranscriptionReady(true)
+        
+        // Скрываем уведомление через 3 секунды с плавной анимацией
+        setTimeout(() => {
+          setShowTranscriptionReady(false)
+        }, 3000)
+        
         return // Прекращаем дальнейшие проверки
       }
       
@@ -497,14 +506,15 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
         </div>
       )}
 
-      {uploadStatus === 'Транскрипция готова!' && (
-        <div className="audio-recorder-notification">
-          {uploadStatus}
+      {showTranscriptionReady && (
+        <div className="audio-recorder-notification show">
+          Транскрипция готова!
         </div>
       )}
 
       {!isRecording && !audioBlob && (
         <div className="audio-recorder-main-section">
+          <h2 className="audio-recorder-title">Запись голосового сообщения</h2>
           <div className="audio-recorder-control-wrapper">
             <div className="sound-waves-container">
               <div className="sound-wave sound-wave-1"></div>
@@ -518,7 +528,6 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
                 circular
               />
             </div>
-            <p className="audio-recorder-hint">Запись голосового сообщения</p>
             <div className="audio-recorder-equalizer-container">
               <AudioWaves audioData={null} isRecording={false} />
             </div>
@@ -528,6 +537,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
 
       {isRecording && (
         <>
+          <h2 className="audio-recorder-title">Идет запись</h2>
           <div className="audio-recorder-timer">
             {formatTime(recordingTime)}
           </div>
@@ -537,8 +547,14 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
         </>
       )}
 
-      {audioUrl && !isRecording && (
-        <div className="audio-recorder-preview">
+      {(isUploading || isLoadingTranscription) && (
+        <h2 className="audio-recorder-title">Ожидание обработки</h2>
+      )}
+
+      {audioUrl && !isRecording && !transcription && !isUploading && !isLoadingTranscription && (
+        <>
+          <h2 className="audio-recorder-title">Прослушайте запись</h2>
+          <div className="audio-recorder-preview">
           <audio 
             ref={audioPlayerRef}
             src={audioUrl} 
@@ -650,15 +666,19 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
             </div>
           </div>
         </div>
+        </>
       )}
 
       {/* Отображение транскрипции */}
       {transcription && (
-        <div className="audio-recorder-transcription">
-          <div className="transcription-content">
-            {transcription?.transcriptionResult || transcription?.text || transcription?.transcription || transcription?.result || transcription?.transcribedText || 'Текст транскрипции не найден'}
+        <>
+          <h2 className="audio-recorder-title">Транскрипция</h2>
+          <div className="audio-recorder-transcription">
+            <div className="transcription-content">
+              {transcription?.transcriptionResult || transcription?.text || transcription?.transcription || transcription?.result || transcription?.transcribedText || 'Текст транскрипции не найден'}
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Индикатор загрузки транскрипции */}
