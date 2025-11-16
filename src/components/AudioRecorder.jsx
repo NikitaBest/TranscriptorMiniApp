@@ -39,6 +39,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
   const isRecordingRef = useRef(false) // Ref для проверки состояния записи
   const isPausedRef = useRef(false) // Ref для проверки состояния паузы
   const audioPlayerRef = useRef(null) // Ref для audio элемента
+  const fileInputRef = useRef(null) // Ref для input файла
 
   // Форматирование времени в MM:SS
   const formatTime = (seconds) => {
@@ -458,6 +459,81 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
     setEditableTranscriptionText('')
   }
 
+  // Обработка выбора файла
+  const handleFileSelect = async (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Проверяем, что это аудио файл
+    if (!file.type.startsWith('audio/')) {
+      setError('Пожалуйста, выберите аудио файл')
+      return
+    }
+
+    try {
+      setIsUploading(true)
+      setError(null)
+      setUploadStatus(null)
+      setTranscription(null)
+      setTranscriptionId(null)
+      setEditableTranscriptionText('')
+
+      console.log('Подготовка файла для отправки:', {
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        fileSizeKB: (file.size / 1024).toFixed(2) + ' KB'
+      })
+
+      const response = await audioApiService.uploadAudio(file)
+      
+      console.log('Ответ от сервера при загрузке:', response)
+      
+      // Получаем ID записи из ответа
+      const uploadData = response?.value || response
+      const id = uploadData?.id
+      
+      if (id) {
+        // Сохраняем ID записи
+        setTranscriptionId(id)
+        console.log('ID записи сохранен:', id)
+        
+        // Не показываем промежуточные статусы
+        setUploadStatus(null)
+        
+        // Даем время бекенду создать задачу транскрипции перед первой проверкой
+        statusCheckTimerRef.current = setTimeout(() => {
+          console.log('Начинаем проверку статуса транскрипции для ID:', id)
+          setIsLoadingTranscription(true) // Начинаем проверку статуса
+          setIsUploading(false) // Загрузка завершена
+          checkTranscriptionStatus(id)
+        }, 2000) // Ждем 2 секунды перед первой проверкой
+      } else {
+        setUploadStatus(null)
+        console.error('ID записи не найден в ответе:', response)
+        setIsUploading(false)
+      }
+
+    } catch (err) {
+      console.error('Ошибка при загрузке файла:', err)
+      setError(err.message || 'Ошибка при загрузке аудио файла на сервер')
+      setUploadStatus(null)
+      setIsUploading(false)
+    }
+
+    // Сбрасываем input, чтобы можно было выбрать тот же файл снова
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  // Открытие диалога выбора файла
+  const handleFileButtonClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click()
+    }
+  }
+
   // Отправка аудио на бекенд
   const uploadAudio = async () => {
     if (!audioBlob) return
@@ -670,7 +746,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
         </div>
       )}
 
-      {!isRecording && !audioBlob && (
+      {!isRecording && !audioBlob && !isUploading && !isLoadingTranscription && !transcription && (
         <div className="audio-recorder-main-section">
           <h2 className="audio-recorder-title">Запись голосового сообщения</h2>
           <div className="audio-recorder-control-wrapper">
@@ -682,6 +758,22 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
                 variant="record"
                 icon={<MicrophoneIcon />}
                 onClick={startRecording}
+                disabled={isUploading}
+                circular
+              />
+            </div>
+            <div className="audio-recorder-file-upload">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="audio/*"
+                onChange={handleFileSelect}
+                style={{ display: 'none' }}
+              />
+              <Button
+                variant="upload"
+                icon={<img src="/audiopush.svg" alt="Загрузить файл" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />}
+                onClick={handleFileButtonClick}
                 disabled={isUploading}
                 circular
               />
@@ -705,8 +797,19 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
         </>
       )}
 
-      {(isUploading || isLoadingTranscription) && (
-        <h2 className="audio-recorder-title">Ожидание обработки</h2>
+      {(isUploading || isLoadingTranscription) && !transcription && (
+        <>
+          <h2 className="audio-recorder-title">Ожидание обработки</h2>
+          <div className="audio-recorder-equalizer-container">
+            <AudioWaves audioData={null} isRecording={false} />
+          </div>
+          <div className="audio-recorder-loading">
+            <div className="loading-spinner"></div>
+            <p>
+              {isUploading ? 'Загрузка файла...' : 'Получение транскрипции...'}
+            </p>
+          </div>
+        </>
       )}
 
       {audioUrl && !isRecording && !transcription && !isUploading && !isLoadingTranscription && (
@@ -843,13 +946,6 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
         </>
       )}
 
-      {/* Индикатор загрузки транскрипции */}
-      {isLoadingTranscription && transcriptionId && !transcription && (
-        <div className="audio-recorder-loading">
-          <div className="loading-spinner"></div>
-          <p>Получение транскрипции...</p>
-        </div>
-      )}
 
       <div className="audio-recorder-controls">
 

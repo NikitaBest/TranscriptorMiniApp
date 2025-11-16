@@ -121,6 +121,14 @@
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
 }
 
+.audio-recorder-file-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
 .audio-recorder-error {
   width: 100%;
   padding: 0.75rem 1rem;
