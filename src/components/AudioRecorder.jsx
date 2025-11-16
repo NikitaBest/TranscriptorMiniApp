@@ -25,6 +25,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
   const [duration, setDuration] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [showTranscriptionReady, setShowTranscriptionReady] = useState(false)
+  const [showCopyNotification, setShowCopyNotification] = useState(false)
   const [editableTranscriptionText, setEditableTranscriptionText] = useState('')
 
   const mediaRecorderRef = useRef(null)
@@ -412,31 +413,39 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
     setUploadStatus(null)
   }
 
-  // Сохранение транскрипции
-  const saveTranscription = () => {
+  // Копирование транскрипции в буфер обмена
+  const copyTranscription = async () => {
     // Используем редактируемый текст, если он есть, иначе оригинальный
     const transcriptionText = editableTranscriptionText || transcription?.transcriptionResult || transcription?.text || transcription?.transcription || transcription?.result || transcription?.transcribedText || ''
     
     if (transcriptionText) {
-      // Создаем файл с транскрипцией
-      const blob = new Blob([transcriptionText], { type: 'text/plain;charset=utf-8' })
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `transcription_${new Date().getTime()}.txt`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
-      
-      // Можно также сохранить в localStorage для истории
-      const savedTranscriptions = JSON.parse(localStorage.getItem('savedTranscriptions') || '[]')
-      savedTranscriptions.push({
-        text: transcriptionText,
-        timestamp: new Date().toISOString(),
-        duration: recordingTime
-      })
-      localStorage.setItem('savedTranscriptions', JSON.stringify(savedTranscriptions))
+      try {
+        // Используем современный Clipboard API
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(transcriptionText)
+        } else {
+          // Fallback для старых браузеров
+          const textArea = document.createElement('textarea')
+          textArea.value = transcriptionText
+          textArea.style.position = 'fixed'
+          textArea.style.left = '-999999px'
+          textArea.style.top = '-999999px'
+          document.body.appendChild(textArea)
+          textArea.focus()
+          textArea.select()
+          document.execCommand('copy')
+          document.body.removeChild(textArea)
+        }
+        
+        // Показываем уведомление о копировании
+        setShowCopyNotification(true)
+        setTimeout(() => {
+          setShowCopyNotification(false)
+        }, 2000)
+      } catch (err) {
+        console.error('Ошибка при копировании текста:', err)
+        setError('Не удалось скопировать текст. Попробуйте еще раз.')
+      }
     }
   }
 
@@ -652,6 +661,12 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
       {showTranscriptionReady && (
         <div className="audio-recorder-notification show">
           Транскрипция готова!
+        </div>
+      )}
+
+      {showCopyNotification && (
+        <div className="audio-recorder-notification show">
+          Текст скопирован!
         </div>
       )}
 
@@ -893,9 +908,9 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
             </Button>
             <Button
               variant="upload"
-              onClick={saveTranscription}
+              onClick={copyTranscription}
             >
-              Сохранить
+              Скопировать текст
             </Button>
           </>
         )}
