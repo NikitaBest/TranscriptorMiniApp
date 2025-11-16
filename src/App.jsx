@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import { testUserData, isLocalDevelopment } from './config/testData.js'
 import AudioRecorder from './components/AudioRecorder.jsx'
+import AudioWaves from './components/AudioWaves.jsx'
 
 function App() {
   const [userName, setUserName] = useState(null)
@@ -79,6 +80,7 @@ function App() {
         )}
         <AudioRecorder />
       </div>
+      <AudioWaves />
     </div>
   )
 }

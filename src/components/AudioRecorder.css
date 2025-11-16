@@ -6,21 +6,93 @@
   flex-direction: column;
   align-items: center;
   gap: 1.5rem;
-  background-color: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.audio-recorder-header {
+.audio-recorder-main-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
   width: 100%;
-  text-align: center;
 }
 
-.audio-recorder-header h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #213547;
+.audio-recorder-control-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+/* Контейнер для звуковых волн */
+.sound-waves-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 160px;
+  height: 160px;
+}
+
+/* Звуковые волны */
+.sound-wave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  border: 1px solid rgba(253, 15, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sound-wave-1 {
+  animation: sound-wave-pulse 2s ease-out infinite;
+  animation-delay: 0s;
+}
+
+.sound-wave-2 {
+  animation: sound-wave-pulse 2s ease-out infinite;
+  animation-delay: 0.67s;
+}
+
+.sound-wave-3 {
+  animation: sound-wave-pulse 2s ease-out infinite;
+  animation-delay: 1.33s;
+}
+
+@keyframes sound-wave-pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.6;
+    border-width: 1px;
+    border-color: rgba(253, 15, 0, 0.5);
+  }
+  30% {
+    opacity: 0.4;
+    border-color: rgba(253, 15, 0, 0.35);
+  }
+  60% {
+    opacity: 0.25;
+    border-color: rgba(253, 15, 0, 0.25);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+    border-width: 0.5px;
+    border-color: rgba(253, 15, 0, 0.1);
+  }
+}
+
+.audio-recorder-hint {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: rgba(33, 53, 71, 0.75);
   margin: 0;
+  text-align: center;
+  line-height: 1.4;
 }
 
 .audio-recorder-error {
@@ -71,7 +143,16 @@
   flex-wrap: wrap;
   gap: 1rem;
   justify-content: center;
+  align-items: center;
   width: 100%;
+}
+
+.audio-recorder-controls-group {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 /* Стили кнопок теперь в компоненте Button */
@@ -172,6 +253,16 @@
   .audio-recorder-btn {
     width: 100%;
     min-width: 100%;
+  }
+
+  .sound-waves-container {
+    width: 140px;
+    height: 140px;
+  }
+
+  .sound-wave {
+    width: 140px;
+    height: 140px;
   }
 
   .transcription-content {

@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import audioApiService from '../services/audioApi.js'
 import Button from './Button.jsx'
+import MicrophoneIcon from './MicrophoneIcon.jsx'
+import PauseIcon from './PauseIcon.jsx'
+import StopIcon from './StopIcon.jsx'
 import './AudioRecorder.css'
 
 function AudioRecorder() {
@@ -313,10 +316,6 @@ function AudioRecorder() {
 
   return (
     <div className="audio-recorder">
-      <div className="audio-recorder-header">
-        <h2>Запись голосового сообщения</h2>
-      </div>
-
       {error && (
         <div className="audio-recorder-error">
           {error}
@@ -329,9 +328,34 @@ function AudioRecorder() {
         </div>
       )}
 
-      <div className="audio-recorder-timer">
-        {formatTime(recordingTime)}
-      </div>
+      {!isRecording && !audioBlob && (
+        <div className="audio-recorder-main-section">
+          <div className="audio-recorder-timer">
+            {formatTime(recordingTime)}
+          </div>
+          <div className="audio-recorder-control-wrapper">
+            <div className="sound-waves-container">
+              <div className="sound-wave sound-wave-1"></div>
+              <div className="sound-wave sound-wave-2"></div>
+              <div className="sound-wave sound-wave-3"></div>
+              <Button
+                variant="record"
+                icon={<MicrophoneIcon />}
+                onClick={startRecording}
+                disabled={isUploading}
+                circular
+              />
+            </div>
+            <p className="audio-recorder-hint">Запись голосового сообщения</p>
+          </div>
+        </div>
+      )}
+
+      {isRecording && (
+        <div className="audio-recorder-timer">
+          {formatTime(recordingTime)}
+        </div>
+      )}
 
       {audioUrl && !isRecording && (
         <div className="audio-recorder-preview">
@@ -380,44 +404,31 @@ function AudioRecorder() {
       )}
 
       <div className="audio-recorder-controls">
-        {!isRecording && !audioBlob && (
-          <Button
-            variant="record"
-            icon="🎤"
-            onClick={startRecording}
-            disabled={isUploading}
-          >
-            Начать запись
-          </Button>
-        )}
 
         {isRecording && (
-          <>
+          <div className="audio-recorder-controls-group">
             {!isPaused ? (
               <Button
                 variant="pause"
-                icon="⏸"
+                icon={<PauseIcon />}
                 onClick={pauseRecording}
-              >
-                Пауза
-              </Button>
+                circular
+              />
             ) : (
               <Button
                 variant="resume"
                 icon="▶"
                 onClick={resumeRecording}
-              >
-                Продолжить
-              </Button>
+                circular
+              />
             )}
             <Button
               variant="stop"
-              icon="⏹"
+              icon={<StopIcon />}
               onClick={stopRecording}
-            >
-              Остановить
-            </Button>
-          </>
+              circular
+            />
+          </div>
         )}
 
         {audioBlob && !isRecording && (
