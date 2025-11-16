@@ -231,7 +231,17 @@
 .btn-circular.btn-record:hover:not(:disabled) {
   animation: none;
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 6px 25px rgba(135, 206, 250, 0.5);
+  background: #E8F5E9; /* Светло-зеленый фон */
+  border-color: rgba(76, 175, 80, 0.6); /* Зеленая граница */
+  box-shadow: 0 6px 25px rgba(76, 175, 80, 0.5); /* Зеленая тень */
+}
+
+.btn-circular.btn-record:hover:not(:disabled)::before {
+  border-color: rgba(76, 175, 80, 0.3); /* Зеленая граница для ::before */
+}
+
+.btn-circular.btn-record:hover:not(:disabled)::after {
+  border-color: rgba(76, 175, 80, 0.15); /* Зеленая граница для ::after */
 }
 
 .btn-circular.btn-record:active:not(:disabled) {
