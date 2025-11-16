@@ -416,13 +416,33 @@
 }
 
 .transcription-content {
+  width: 100%;
+  min-height: 120px;
+  max-height: 400px;
   font-size: 1rem;
   line-height: 1.6;
   color: #213547;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: vertical;
+  padding: 0;
   margin: 0;
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.transcription-content:focus {
+  outline: none;
+}
+
+.transcription-content::placeholder {
+  color: rgba(33, 53, 71, 0.4);
+  opacity: 1;
 }
 
 /* Индикатор загрузки */
@@ -521,10 +541,11 @@
     height: 140px;
   }
 
-  .transcription-content {
-    max-height: 200px;
-    font-size: 0.875rem;
-  }
+      .transcription-content {
+        max-height: 200px;
+        font-size: 0.875rem;
+        min-height: 100px;
+      }
 
   .audio-recorder-equalizer-container {
     padding: 0.75rem;

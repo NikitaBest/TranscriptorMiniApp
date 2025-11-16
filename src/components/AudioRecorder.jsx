@@ -25,6 +25,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
   const [duration, setDuration] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [showTranscriptionReady, setShowTranscriptionReady] = useState(false)
+  const [editableTranscriptionText, setEditableTranscriptionText] = useState('')
 
   const mediaRecorderRef = useRef(null)
   const audioChunksRef = useRef([])
@@ -269,6 +270,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
     setRecordingTime(0)
     setError(null)
     setTranscription(null)
+    setEditableTranscriptionText('')
     setTranscriptionId(null)
     setTranscriptionStatus(null)
     setIsLoadingTranscription(false)
@@ -277,7 +279,8 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
 
   // Сохранение транскрипции
   const saveTranscription = () => {
-    const transcriptionText = transcription?.transcriptionResult || transcription?.text || transcription?.transcription || transcription?.result || transcription?.transcribedText || ''
+    // Используем редактируемый текст, если он есть, иначе оригинальный
+    const transcriptionText = editableTranscriptionText || transcription?.transcriptionResult || transcription?.text || transcription?.transcription || transcription?.result || transcription?.transcribedText || ''
     
     if (transcriptionText) {
       // Создаем файл с транскрипцией
@@ -308,6 +311,7 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
     setCurrentTime(0)
     setDuration(0)
     setIsPlaying(false)
+    setEditableTranscriptionText('')
   }
 
   // Отправка аудио на бекенд
@@ -411,10 +415,13 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
         stopStatusCheck()
         
         // Сохраняем данные транскрипции
+        const transcriptionText = transcriptionResult || data?.text || data?.transcription || data?.result || data?.transcribedText || ''
         setTranscription({
-          text: transcriptionResult || data?.text || data?.transcription || '',
+          text: transcriptionText,
           ...data
         })
+        // Устанавливаем редактируемый текст
+        setEditableTranscriptionText(transcriptionText)
         setIsLoadingTranscription(false)
         setIsUploading(false)
         console.log('Транскрипция получена:', transcriptionResult)
@@ -674,9 +681,13 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
         <>
           <h2 className="audio-recorder-title">Транскрипция</h2>
           <div className="audio-recorder-transcription">
-            <div className="transcription-content">
-              {transcription?.transcriptionResult || transcription?.text || transcription?.transcription || transcription?.result || transcription?.transcribedText || 'Текст транскрипции не найден'}
-            </div>
+            <textarea
+              className="transcription-content"
+              value={editableTranscriptionText}
+              onChange={(e) => setEditableTranscriptionText(e.target.value)}
+              placeholder="Текст транскрипции не найден"
+              rows={6}
+            />
           </div>
         </>
       )}
