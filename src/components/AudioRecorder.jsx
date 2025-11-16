@@ -101,14 +101,108 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
     animationFrameRef.current = requestAnimationFrame(analyzeAudio)
   }
 
+  // Определение поддерживаемого MIME-типа для MediaRecorder
+  const getSupportedMimeType = () => {
+    const types = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/ogg;codecs=opus',
+      'audio/mp4',
+      'audio/aac',
+      'audio/wav'
+    ]
+    
+    for (const type of types) {
+      if (MediaRecorder.isTypeSupported(type)) {
+        console.log('Поддерживаемый MIME-тип:', type)
+        return type
+      }
+    }
+    
+    // Если ничего не поддерживается, возвращаем пустую строку (браузер выберет сам)
+    console.warn('Не найден поддерживаемый MIME-тип, используется формат по умолчанию')
+    return ''
+  }
+
+  // Проверка доступности API
+  const checkMediaDevicesSupport = () => {
+    if (!navigator.mediaDevices) {
+      throw new Error('MediaDevices API не поддерживается в этом браузере')
+    }
+    
+    if (!navigator.mediaDevices.getUserMedia) {
+      throw new Error('getUserMedia не поддерживается в этом браузере')
+    }
+    
+    if (!window.MediaRecorder) {
+      throw new Error('MediaRecorder API не поддерживается в этом браузере')
+    }
+  }
+
   // Запрос доступа к микрофону и начало записи
   const startRecording = async () => {
     try {
       setError(null)
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      
+      // Проверяем доступность API
+      checkMediaDevicesSupport()
+      
+      // Запрашиваем доступ к микрофону
+      let stream
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          } 
+        })
+      } catch (getUserMediaError) {
+        console.error('Ошибка getUserMedia:', getUserMediaError)
+        
+        // Детальная обработка различных типов ошибок
+        if (getUserMediaError.name === 'NotAllowedError' || getUserMediaError.name === 'PermissionDeniedError') {
+          throw new Error('Доступ к микрофону запрещен. Пожалуйста, разрешите доступ в настройках браузера.')
+        } else if (getUserMediaError.name === 'NotFoundError' || getUserMediaError.name === 'DevicesNotFoundError') {
+          throw new Error('Микрофон не найден. Убедитесь, что устройство подключено.')
+        } else if (getUserMediaError.name === 'NotReadableError' || getUserMediaError.name === 'TrackStartError') {
+          throw new Error('Микрофон занят другим приложением. Закройте другие приложения, использующие микрофон.')
+        } else if (getUserMediaError.name === 'OverconstrainedError') {
+          throw new Error('Запрошенные параметры микрофона не поддерживаются.')
+        } else {
+          throw new Error(`Ошибка доступа к микрофону: ${getUserMediaError.message || 'Неизвестная ошибка'}`)
+        }
+      }
+      
+      // Проверяем, что stream активен и содержит аудио треки
+      const audioTracks = stream.getAudioTracks()
+      if (audioTracks.length === 0) {
+        stream.getTracks().forEach(track => track.stop())
+        throw new Error('Не удалось получить аудио трек из потока')
+      }
+      
+      // Проверяем состояние первого трека
+      const firstTrack = audioTracks[0]
+      if (firstTrack.readyState === 'ended') {
+        stream.getTracks().forEach(track => track.stop())
+        throw new Error('Аудио трек уже завершен')
+      }
       
       // Создаем AudioContext для анализа звука
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+      let audioContext
+      try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)()
+        
+        // Некоторые браузеры требуют резюмирования AudioContext после пользовательского взаимодействия
+        if (audioContext.state === 'suspended') {
+          await audioContext.resume()
+        }
+      } catch (audioContextError) {
+        stream.getTracks().forEach(track => track.stop())
+        console.error('Ошибка создания AudioContext:', audioContextError)
+        throw new Error('Не удалось инициализировать аудио контекст. Попробуйте обновить страницу.')
+      }
+      
       const analyser = audioContext.createAnalyser()
       const source = audioContext.createMediaStreamSource(stream)
       
@@ -122,21 +216,39 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
       analyserRef.current = analyser
       dataArrayRef.current = new Uint8Array(analyser.frequencyBinCount)
       
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      })
+      // Определяем поддерживаемый MIME-тип
+      const mimeType = getSupportedMimeType()
+      const options = mimeType ? { mimeType } : {}
+      
+      // Создаем MediaRecorder с поддерживаемым форматом
+      let mediaRecorder
+      try {
+        mediaRecorder = new MediaRecorder(stream, options)
+      } catch (mediaRecorderError) {
+        stream.getTracks().forEach(track => track.stop())
+        audioContext.close()
+        console.error('Ошибка создания MediaRecorder:', mediaRecorderError)
+        throw new Error('Не удалось создать записывающее устройство. Ваш браузер может не поддерживать запись аудио.')
+      }
       
       mediaRecorderRef.current = mediaRecorder
       audioChunksRef.current = []
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
+        if (event.data && event.data.size > 0) {
           audioChunksRef.current.push(event.data)
         }
       }
+      
+      mediaRecorder.onerror = (event) => {
+        console.error('Ошибка MediaRecorder:', event.error)
+        setError(`Ошибка записи: ${event.error?.message || 'Неизвестная ошибка'}`)
+        stopRecording()
+      }
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+        const mimeType = mediaRecorder.mimeType || 'audio/webm'
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType })
         setAudioBlob(audioBlob)
         if (onAudioBlobChange) {
           onAudioBlobChange(true)
@@ -166,7 +278,16 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
         stream.getTracks().forEach(track => track.stop())
       }
 
-      mediaRecorder.start()
+      // Запускаем запись с обработкой ошибок
+      try {
+        mediaRecorder.start()
+      } catch (startError) {
+        stream.getTracks().forEach(track => track.stop())
+        audioContext.close()
+        console.error('Ошибка запуска MediaRecorder:', startError)
+        throw new Error('Не удалось начать запись. Попробуйте еще раз.')
+      }
+      
       isRecordingRef.current = true
       setIsRecording(true)
       if (onRecordingStateChange) {
@@ -186,7 +307,21 @@ function AudioRecorder({ onAudioData, onRecordingStateChange, audioData, onAudio
 
     } catch (err) {
       console.error('Ошибка при записи:', err)
-      setError('Не удалось получить доступ к микрофону. Проверьте разрешения.')
+      
+      // Очищаем состояние при ошибке
+      isRecordingRef.current = false
+      setIsRecording(false)
+      if (onRecordingStateChange) {
+        onRecordingStateChange(false)
+      }
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+        timerRef.current = null
+      }
+      
+      // Показываем понятное сообщение об ошибке
+      const errorMessage = err.message || 'Не удалось получить доступ к микрофону. Проверьте разрешения.'
+      setError(errorMessage)
     }
   }
 
